@@ -1,0 +1,55 @@
+buildscript {
+  repositories {
+    maven {
+      url 'https://plugins.gradle.org/m2/'
+    }
+  }
+  dependencies {
+    classpath 'se.transmode.gradle:gradle-docker:1.2'
+  }
+}
+
+apply plugin: 'application'
+apply plugin: 'docker'
+
+mainClassName = 'io.vertx.core.Launcher'
+def mainVerticle = "service:${group}.${project.name}"
+
+applicationDefaultJvmArgs = [ 
+  '-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory',
+  '-Dvertx.metrics.options.enabled=true'
+]
+
+run {
+  args = ['run', mainVerticle]
+}
+
+startScripts {
+  applicationName = 'service'
+  unixStartScriptGenerator.template = resources.text.fromFile('etc/customUnixStartScript.txt')
+}
+
+task buildDocker( type: Docker, dependsOn: [startScripts,distTar], group: 'Distribution' ) {
+  push = Boolean.getBoolean("docker.push")
+  doFirst {
+    def buildNumber = System.getenv("BUILD_NUMBER")
+    baseImage = 'java:8'
+    tagVersion = buildNumber ? "${project.version}-${buildNumber}" : project.version
+    registry = 'nineconnections'
+    addFile distTar.archivePath, "/srv/"    
+    setEnvironment 'SERVICE_HOME', "/srv/${distTar.archiveName}" - ".${distTar.extension}"
+    setEnvironment 'PATH', '$SERVICE_HOME/bin:$PATH'
+    setEnvironment 'VERTX_OPTS', applicationDefaultJvmArgs.join(' ')
+    workingDir '$SERVICE_HOME'
+    entryPoint = [ startScripts.applicationName, 'run', mainVerticle ]
+  }
+}
+
+build.finalizedBy buildDocker
+
+dependencies {
+  compile project(':api')
+
+  testCompile 'nl.kii.kafka:kafka-test:0.1.0'
+  testCompile "io.vertx:vertx-web-client:${vertxVersion}"  
+}

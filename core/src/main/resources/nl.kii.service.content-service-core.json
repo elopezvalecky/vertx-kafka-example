@@ -1,0 +1,15 @@
+{
+	"main": "nl.kii.service.content.ContentVerticle",
+	"options": {
+		"isolationGroup": "content-service",
+		"config": {
+            "kafka": {
+                "client.id": null,
+                "application.id": "content-service",
+                "bootstrap.servers": "localhost:9092",
+                "acks": "all",
+                "auto.offset.reset": "earliest"
+            }
+		}
+	}
+}

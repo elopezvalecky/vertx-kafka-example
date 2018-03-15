@@ -1,0 +1,11 @@
+include 'api'
+include 'core'
+
+// Sub Domains
+include 'item'
+include 'bucket'
+include 'source'
+
+include 'rest-api'
+
+rootProject.children.each { project -> project.buildFileName = "${project.name}.gradle" }

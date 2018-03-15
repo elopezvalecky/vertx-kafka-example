@@ -1,0 +1,68 @@
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "org.xtext:xtext-gradle-plugin:1.0.21"
+  }
+}
+
+ext {
+  javaVersion = '1.8'
+  vertxVersion = '3.5.1'
+  xtendVersion = '2.13.0'
+}
+
+allprojects {
+  apply plugin: 'eclipse'
+
+  eclipse {
+    classpath {
+      downloadSources = true
+      downloadJavadoc = true
+    }
+  }
+}
+
+subprojects {
+  apply plugin: 'org.xtext.xtend'
+  
+  sourceCompatibility = javaVersion
+  targetCompatibility = javaVersion  
+
+  xtend {
+    preferences = [ 'useJavaCompilerCompliance':true ]
+  }
+
+  eclipse {
+    project.name = rootProject.name + '-' + project.name
+  }
+  
+  repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+  }
+
+  jar {
+    baseName = rootProject.name + '-' + project.name
+  }
+    
+  dependencies {
+    compile "org.eclipse.xtend:org.eclipse.xtend.lib:${xtendVersion}"
+    compile 'org.slf4j:slf4j-api:1.7.21'
+
+    compile 'nl.kii.io.vertx:vertx-microservice-chassis:0.2.1'
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.assertj:assertj-core:3.3.0'
+    testCompile 'io.rest-assured:rest-assured:3.0.0'
+    testCompile "io.vertx:vertx-unit:${vertxVersion}"    
+  }
+}
+
+task wrapper( type: Wrapper ) {
+  gradleVersion = '4.6'
+}

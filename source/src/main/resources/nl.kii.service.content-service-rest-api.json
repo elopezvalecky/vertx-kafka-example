@@ -1,0 +1,6 @@
+{
+	"main": "nl.kii.service.content.ContentVerticle",
+	"options": {
+		"isolationGroup": "content-service"
+	}
+}
